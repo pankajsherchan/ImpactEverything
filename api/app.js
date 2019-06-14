@@ -2,11 +2,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const graphqlHttp = require('express-graphql');
 const { buildSchema } = require('graphql');
+const mongoose = require('mongoose');
+
+const Sale = require('./models/sale');
 
 const app = express();
-
-const sales = [];
-
 
 app.use(bodyParser.json());
 
@@ -17,7 +17,6 @@ app.use('/graphql', graphqlHttp({
             product: String!
             customer: String!
             total: Float!
-            date: String!
         }
 
         input SaleInput {
@@ -41,21 +40,44 @@ app.use('/graphql', graphqlHttp({
     `),
     rootValue: {
         sales: () => {
-            return sales;
+            return Sale.find()
+                .then(sales => {
+                    return sales.map(sale => {
+                        return { ...sale._doc };
+                    });
+                })
         },
         createSale: (args) => {
-            const sale = {
-                _id: Math.random().toString(),
+            const sale = new Sale({
                 product: args.saleInput.product,
                 customer: args.saleInput.customer,
-                total: +args.saleInput.total,
-                date: new Date().toISOString()
-            };
-            sales.push(sale);
+                total: +args.saleInput.total
+            });
+
+            sale.save()
+                .then(result => {
+                    console.log(result);
+                    return { ...result._doc };
+                })
+                .catch(err => {
+                    console.log(err);
+                    throw err;
+                });
             return sale;
         }
     },
     graphiql: true
 }));
 
-app.listen(3000);
+
+
+mongoose.connect(`
+mongodb+srv://pankajsherchan:test@cluster0-pzqeh.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority
+`, { useNewUrlParser: true })
+    .then(() => {
+        app.listen(3000);
+    })
+    .catch(err => {
+        console.log('rr');
+        console.log(err);
+    })
