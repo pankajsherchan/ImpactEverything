@@ -57,6 +57,47 @@ class IndexPage extends React.Component {
     });
 
     console.log(result);
+
+    const requestBody = {
+      query: `
+        mutation CreateSale($productName: String!, $customerName: String!) {
+          createSale(saleInput: {
+            product: $productName
+            customer: $customerName,
+            total: 20
+          })
+          {
+            product
+            customer 
+            total
+          }
+        }
+      `,
+      variables: {
+        productName: "product",
+        customerName: "Customer"
+      }
+    }
+
+    fetch('http://localhost:3000/graphql', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('Failed');
+        }
+        return res.json();
+      })
+      .then(resData => {
+        console.log(resData);
+      })
+      .catch(error => {
+        throw error;
+      })
   }
 
   handleDarkSideForce() {
