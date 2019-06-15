@@ -9,9 +9,9 @@ type Sale {
 }
 
 input SaleInput {
-    product: String!
-    customer: String!
-    total: Float!
+    product: String
+    customer: String
+    total: Float
 }
 
 type RootQuery {
@@ -20,7 +20,7 @@ type RootQuery {
 
 type RootMutation {
     createSale(saleInput: SaleInput): Sale
-    createSales(saleInputs: [SaleInput!]!): [Sale]
+    createSales(saleInputs: [SaleInput]): [Sale]
 }
 
 schema {
@@ -28,3 +28,26 @@ schema {
     mutation: RootMutation
 }
 `);
+
+
+const graphql = require('graphql');
+const { GraphQLObjectType, GraphQLString, GraphQLFloat } = graphql;
+
+const Sale = new GraphQLObjectType({
+    name: 'Sale',
+    fields: () => ({
+        id: { type: GraphQLString },
+        product: { type: GraphQLString },
+        customer: { type: GraphQLString },
+        total: { type: GraphQLFloat }
+    })
+});
+
+const RootQuery = new GraphQLObjectType({
+    name: 'RootQueryType',
+    fields: {
+        sale: {
+            type: Sale
+        }
+    }
+})

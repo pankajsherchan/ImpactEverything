@@ -1,10 +1,42 @@
 import React from "react"
-import { Link } from "gatsby"
-
 import Layout from "../components/layout"
-import Image from "../components/image"
 import SEO from "../components/seo"
 import CSVReader from 'react-csv-reader'
+import ApolloClient from 'apollo-boost'
+import { ApolloProvider, graphql } from 'react-apollo'
+import { gql } from 'apollo-boost';
+import { Query } from 'react-apollo'
+
+const client = new ApolloClient({
+  uri: 'http://localhost:3000/graphql'
+});
+
+const getSaleList = gql`
+{
+  sales {
+    product
+    customer
+  }
+}
+`
+
+const sales = () => (
+  <Query query={getSaleList}>
+    {({ loading, error, data }) => {
+      if (loading) return "Loading...";
+      if (error) return `Error! ${error.message}`;
+
+      console.log(data);
+      return (
+        <div>
+          {data.sales.map(s => (
+            <p> {s.product} </p>
+          ))}
+        </div>
+      );
+    }}
+  </Query>
+);
 
 class IndexPage extends React.Component {
 
@@ -26,37 +58,11 @@ class IndexPage extends React.Component {
 
     const result = data.slice(1, data.length).map((d, index) => {
       return {
-        SystemId: d[0],
-        UPC: d[1],
-        EAN: d[2],
-        CustomSKU: d[3],
-        ManufactureSKU: d[4],
-        Item: d[5],
-        Quantity: d[6],
-        Price: d[7],
-        Tax: d[8],
-        Brand: d[9],
-        PublishToECOM: d[10],
-        Season: d[11],
-        Department: d[12],
-        MSRP: d[13],
-        TaxClass: d[14],
-        DefaultCost: d[15],
-        Vendor: d[16],
-        Category: d[17],
-        Subcategory1: d[18],
-        Subcategory2: d[19],
-        Subcategory3: d[20],
-        Subcategory4: d[21],
-        Subcategory5: d[22],
-        Subcategory6: d[23],
-        Subcategory7: d[24],
-        Subcategory8: d[25],
-        Subcategory9: d[26]
+        total: 10,
+        customer: d.Email, // storing only email for time being
+        product: d.Item // storing only product name for time being
       }
     });
-
-    console.log(result);
 
     const requestBody = {
       query: `
@@ -88,7 +94,9 @@ class IndexPage extends React.Component {
     })
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
+          console.log(res);
           throw new Error('Failed');
+
         }
         return res.json();
       })
@@ -108,6 +116,8 @@ class IndexPage extends React.Component {
     return (
       <Layout>
         <SEO title="Home" />
+        {sales()}
+
         <CSVReader
           cssClass="csv-reader-input"
           label="Select Sales CSV "
@@ -115,6 +125,7 @@ class IndexPage extends React.Component {
           onError={this.handleDarkSideForce}
           inputId="ObiWan"
           inputStyle={{ color: 'red' }}
+          parserOptions={{ header: true }}
         />
       </Layout>
     )
