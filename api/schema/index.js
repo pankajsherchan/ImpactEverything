@@ -20,6 +20,7 @@ type RootQuery {
 
 type RootMutation {
     createSale(saleInput: SaleInput): Sale
+    createSales(saleInputs: [SaleInput!]!): [Sale]
 }
 
 schema {

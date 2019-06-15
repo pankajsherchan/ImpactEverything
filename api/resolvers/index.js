@@ -27,5 +27,17 @@ module.exports = {
                 throw err;
             });
         return sale;
+    },
+
+    createSales: async args => {
+        const data = args.saleInputs.map(s => {
+            return new Sale({
+                product: s.product,
+                customer: s.customer,
+                total: s.total
+            });
+        });
+
+        return await Sale.insertMany(data);
     }
 }
